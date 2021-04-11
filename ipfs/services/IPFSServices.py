@@ -116,7 +116,7 @@ class IPFSServices:
         
         p = subprocess.run(['rm', '-r', cid], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         if p.returncode != 0:
-            current_app.logger.error("unable to delete directory {}".format(downloading_cid))
+            current_app.logger.error("unable to delete directory {}".format(cid))
 
 
         p = subprocess.run(['ipfs', 'repo', 'gc'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)

@@ -66,18 +66,21 @@
 
     <!-- progress bar -->
     <div class="row d-flex" id="loading-row" hidden="true">
-        <div class="col-lg-12 text-center">
-            <div class="progress" id="progress-div" style="height: 30px; margin:30px;" hidden="true">
+        <div class="col-lg-10 text-center">
+            <div class="progress" id="progress-div" style="height:100%" hidden="true">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                      aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
                     <large class="justify-content-center d-flex w-100" id="progress-bar-text">Downloading..</large>
                 </div>
             </div>
         </div>
+        <div class="col-md-2 text-center">
+            <button type="button" class="btn btn-danger" id="cancel-download-button" hidden="true">Cancel Download</button>
+        </div>
     </div>
 
 
-    <div class="row" id="result-row" hidden="true">
+    <div class="row" id="result-row" style="margin-top:15px;" hidden="true">
         <div class="col-md-6">
             <figure class="highcharts-figure">
                 <div id="received_blocks_chart"></div>
@@ -182,6 +185,7 @@
                     $('#back-home-button').removeAttr("hidden")
                     $('#lead-text').text("Download completed. Here some result.")
                     $('#download-error').attr('hidden', true)
+                    $('#cancel-download-button').attr('hidden', true)
 
                     clearInterval(check_download_status_interval)
                     clearInterval(find_contributors_interval)
@@ -281,6 +285,7 @@
                 $('#progress-div').removeAttr("hidden")
                 $('#result-row').removeAttr("hidden")
                 $('#download-error').attr('hidden', true)
+                $('#cancel-download-button').removeAttr("hidden")
 
                 if (data.obj_type != 'None' && data.obj_dimension != 'None') {
                     $('#file-info-text').text("Type: " + data.obj_type + ", Dimension: " + data.obj_dimension + " Byte")
@@ -304,6 +309,19 @@
 
     $('#back-home-button').click(() => {
         window.location.href = "/"
+    })
+
+    $('#cancel-download-button').click(() => {
+        $.ajax({
+            url:"/api/stop/"+$('#cid').val(),
+            method: "GET",
+            error: (xhr, data) => {
+                $('#progress-bar-text').text("Something goes wrong stopping the download! " + xhr.responseText)
+                $('#progress-bar-text').addClass("text-danger")
+                clearInterval(check_download_status_interval)
+                clearInterval(find_contributors_interval)
+            }
+        })
     })
 
 

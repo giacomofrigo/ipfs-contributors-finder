@@ -85,9 +85,9 @@ def download_status():
             #cleaning downloaded file and ipfs repo gc
             IPFSServices.clean_cache(downloading_cid)
 
+        downloading_cid = None
         current_app.logger.info("cleaning ip addresses cache")
         current_contributors_addresses = {}
-        downloading_cid = None
         return "Process dead", 200
         
 @views.route("/api/stats/contributors", methods=['GET'])
@@ -137,9 +137,23 @@ def get_contributors():
 @views.route("/api/stop/<cid>")
 def stop_download(cid):
     '''
-    This API stops the download by simpling killing the thread
+    This API stops the download by killing the download process
     '''
-    global downloading_cid
+    global downloading_cid, current_contributors_addresses
+    current_app.logger.info("Download cancel requested")
+    if download_process is not None and download_process.poll() is None and downloading_cid == cid:
+        try:
+            download_process.kill()
+        except:
+            current_app.logger.error("unable to kill the download process")
+            return "unable to kill the download process", 500
 
-    pass
+        # cleaning the download cache
+        IPFSServices.clean_cache(cid)
+        downloading_cid = None
+        current_contributors_addresses = {}
+
+        return "ok", 200
+    else:
+        return "No download process found.", 500
 
