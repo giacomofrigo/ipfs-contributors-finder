@@ -74,13 +74,13 @@
 
 
 
-    <div class="row" id="result-row" hidden="false">
+    <div class="row" id="result-row" hidden="true">
       <div class="col-md-6">
-        <canvas id="received_blocks_chart" width="100%" height="40px"></canvas>
+        <canvas id="received_blocks_chart"></canvas>
       </div>
 
       <div class="col-md-6">
-        <canvas id="country_code_chart" width="100%" height="40px"></canvas>
+        <canvas id="country_code_chart" ></canvas>
       </div>
 
       <div class="col-lg-12" >
@@ -112,6 +112,7 @@
       //[ 313, 4468, 17201, 261, 1162969 ]
 
       ctx = document.getElementById('received_blocks_chart');
+      ctx.height = 200;
       received_blocks_chart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -134,9 +135,16 @@
     });
 
     ctx = document.getElementById('country_code_chart');
+    ctx.height = 200;
     country_code_chart = new Chart(ctx, {
       type: 'pie',
-      data: [],
+      data: {
+       labels: [  ],
+        datasets: [{
+          label: '',
+          data: [ ],
+        }]
+      },
       options: {
         responsive: true,
         plugins: {
@@ -191,25 +199,33 @@
         success: (data) => {
           var peer_ids = []
           var received_blocks = []
-          var countries = {}
+          var country_code = []
+          var country_code_n = []
+          var country_code_idx = null;
 
           $.each(data, (idx, item) => {
             peer_ids.push("..." + item.peer_id.slice(-7))
             received_blocks.push(item.received_blocks)
+            console.log(item)
+            console.log('country_code' in item)
+
             if ('country_code' in item){
-              if (item.country_code in countries){
-                countries.country_code ++;
+              country_code_idx = $.inArray(item.country_code, country_code)
+              if (country_code_idx === -1){
+                country_code.push(item.country_code)
+                country_code_n.push(1)
               }else{
-                countries.country_code = 0;
+                country_code_n[country_code_idx] ++;
               }
-
             }
-
           })
-          for (const [key, value] of Object.entries(countries)) {
-            addData(country_code_chart, [key], [value])
-          }
 
+          console.log("Country code: "+country_code)
+          console.log("Country code n: "+country_code_n)
+          removeData(country_code_chart)
+          addData(country_code_chart, country_code, country_code_n)
+
+          removeData(received_blocks_chart)
           addData(received_blocks_chart, peer_ids, received_blocks)
         },
         error: () => {
@@ -247,8 +263,8 @@
             $('#file-info-text').removeAttr("hidden")
           }
 
-          check_download_status_interval = setInterval(check_download_status, 2000);
-          find_contributors_interval = setInterval(find_contributors, 2000);
+          check_download_status_interval = setInterval(check_download_status, 5000);
+          find_contributors_interval = setInterval(find_contributors, 5000);
         },
         error: (xhr, data) => {
           $('#download-error').removeAttr('hidden')

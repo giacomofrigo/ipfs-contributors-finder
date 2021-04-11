@@ -36,6 +36,7 @@ def start_download(cid):
     '''
     global download_process, downloading_cid
     # if download process is not none and it has not completed yet
+    current_app.logger.info("Download requested.")
     if download_process is not None and download_process.poll() is None:
         current_app.logger.error("Can not start a new download, a download is already in progress. Download_process: {}, .poll(): {}".format(download_process, download_process.poll()))
         return "A download is already accouring.. please wait", 500
@@ -44,6 +45,7 @@ def start_download(cid):
     downloading_cid = cid
 
     #restart the daemon in order to reset stats
+    current_app.logger.info("Restarting the daemon.")
     IPFSServices.restart_daemon()
 
     #check if the cid exists

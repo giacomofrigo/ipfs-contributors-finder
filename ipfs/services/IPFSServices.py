@@ -19,7 +19,7 @@ class IPFSServices:
                 current_app.logger.error ("Status code {}\nText {}".format(response.status_code, response.text))
         except Exception as e:
             #idk why but this works. Some strange API bahaviours.
-            time.sleep(6)
+            time.sleep(3)
             try:
                 response = requests.post('http://localhost:5001/api/v0/file/ls?arg=' + cid, timeout=10)
                 if response.status_code < 400:
@@ -101,7 +101,7 @@ class IPFSServices:
         subprocess.Popen(["killall", "-9", "ipfs"])
         current_app.logger.info("IPFS daemon terminated. Now restartng it.")
         current_app.config["IPFS_DAEMON"] = subprocess.Popen(['/usr/local/bin/ipfs', 'daemon'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        time.sleep(1)
+        time.sleep(3)
         current_app.logger.info("IPFS daemon restarted.")
     
     @staticmethod
