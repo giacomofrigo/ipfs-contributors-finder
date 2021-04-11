@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>IPFS Contributors Finder</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    .center-block {
+      display: table;  /* Instead of display:block */
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .text-danger {
+      color: red; 
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Page Content -->
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h1 class="mt-5">IPFS Contributors Finder</h1>
+        <p class="lead" id="lead-text">Insert your Content ID and start downloading it!</p>
+        <button id ="back-home-button" type="button" class="btn btn-info" hidden="true">Go back home</button>
+        <p class="lead" id="file-info-text" hidden="true"></p>
+      </div>
+    </div>
+    <div class="row justify-content-center" id="form-row">
+      <div class="col-lg-auto">
+
+        <form class="form-inline" action="javascript:void(0);">
+        
+          <div class="input-group mb-2 mr-sm-2">
+            <input type="text" class="form-control" placeholder="CID" id="cid">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" id="random-button" >Random CID</button>
+            </div>            
+          </div>
+          
+          <button type="submit" class="btn btn-primary mb-2" id="download-button">
+            <span id="download-button-text">Download!</span>
+            <span class="spinner-border spinner-border-sm" role="status" id="download-button-spinner" hidden="true"></span>
+          </button>
+        
+        </form>
+        <span class="error text-danger" hidden="true" id="download-error">An error occured! please try again later! </span>
+
+      </div>
+    </div>
+
+    <!-- progress bar -->
+    <div class="row d-flex" id="loading-row" hidden="true">
+      <div class="col-lg-12 text-center">
+        <div class="progress" id="progress-div" style="height: 30px; margin:30px;" hidden="true">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+            <large class="justify-content-center d-flex w-100" id="progress-bar-text">Downloading..</large>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="row" id="result-row" hidden="false">
+      <div class="col-md-6">
+        <canvas id="received_blocks_chart" width="100%" height="40px"></canvas>
+      </div>
+
+      <div class="col-md-6">
+        <canvas id="country_code_chart" width="100%" height="40px"></canvas>
+      </div>
+
+      <div class="col-lg-12" >
+        
+      </div>
+    </div>
+
+
+    
+  </div>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="static/jquery/jquery.min.js"></script>
+  <script src="static/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <script src="/static/chartjs/dist/chart.js"></script>
+  <script src="/static/charting.js"></script>
+
+  <script>
+
+    var received_blocks_chart;
+    var country_code_chart;
+
+    $(document).ready(() => {
+      $('#cid').val("")
+      var ctx = null;
+
+      //[ "sqQLuvuJ", "pkjrAEYn", "Zin6ut1W", "EaidtFVi", "FreJT9JN" ]
+      //[ 313, 4468, 17201, 261, 1162969 ]
+
+      ctx = document.getElementById('received_blocks_chart');
+      received_blocks_chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [  ],
+            datasets: [{
+                label: '# of  received blocks',
+                data: [ ],
+                backgroundColor: ['rgba(50, 151, 168, 0.3)'],
+                borderColor: ['rgba(50, 151, 168, 1)']
+                
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    ctx = document.getElementById('country_code_chart');
+    country_code_chart = new Chart(ctx, {
+      type: 'pie',
+      data: [],
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Contributors country codes'
+          }
+        }
+      }
+    })
+  })
+
+    var check_download_status_interval = null;
+    var find_contributors_interval = null;
+
+    function check_download_status(){
+
+      $.ajax({
+        url:"/api/download/status",
+        method: 'GET',
+        success: (data) => {
+          $('#progress-bar-text').text("Downloading..")
+          $('#progress-bar-text').removeClass("text-danger")
+          if (data !== 'Process alive'){
+            $('#form-row').attr("hidden", true)
+            $('#loading-row').attr("hidden", true)
+            $('#progress-div').attr("hidden", true)
+            $('#result-row').removeAttr("hidden")
+            $('#back-home-button').removeAttr("hidden")
+            $('#lead-text').text("Download completed. Here some result.")
+            $('#download-error').attr('hidden', true)
+
+            clearInterval(check_download_status_interval)
+            clearInterval(find_contributors_interval)
+          }
+        },
+        error: (xhr, data) => {
+          $('#progress-bar-text').text("Error getting info from the daemon! "+xhr.responseText)
+          $('#progress-bar-text').addClass("text-danger")
+        }
+      })   
+    }
+
+
+    function find_contributors(){
+      $.ajax({
+        url:"/api/stats/contributors",
+        method: 'GET',
+        success: (data) => {
+          var peer_ids = []
+          var received_blocks = []
+          var countries = {}
+
+          $.each(data, (idx, item) => {
+            peer_ids.push("..." + item.peer_id.slice(-7))
+            received_blocks.push(item.received_blocks)
+            if ('country_code' in item){
+              if (item.country_code in countries){
+                countries.country_code ++;
+              }else{
+                countries.country_code = 0;
+              }
+
+            }
+
+          })
+          for (const [key, value] of Object.entries(countries)) {
+            addData(country_code_chart, [key], [value])
+          }
+
+          addData(received_blocks_chart, peer_ids, received_blocks)
+        },
+        error: () => {
+          $('#contributors-error').removeAttr("hidden")
+        }
+      })
+
+    }
+
+
+    $('#random-button').click(()=>{
+      //44mb file
+      //$('#cid').val("QmeQtZfwuq6aWRarY9P3L9MWhZ6QTonDe9ahWECGBZjyEJ")
+      //internet files -> 200mb
+      $('#cid').val("QmbsZEvJE8EU51HCUHQg2aem9JNFmFHdva3tGVYutdCXHp")
+    })
+
+    $('#download-button').click(() => {
+      $('#download-button-text').text("Loading..")
+      $('#download-button-spinner').removeAttr("hidden")
+
+      $.ajax({
+        url:"/api/download/"+$('#cid').val(),
+        method: 'GET',
+        success: (data) => {
+          $('#form-row').attr("hidden", true)
+          $('#lead-text').text("Downloading "+$('#cid').val())
+          $('#loading-row').removeAttr("hidden")
+          $('#progress-div').removeAttr("hidden")
+          $('#result-row').removeAttr("hidden")
+          $('#download-error').attr('hidden', true)
+
+          if(data.obj_type != 'None' && data.obj_dimension != 'None'){
+            $('#file-info-text').text("Type: "+data.obj_type+", Dimension: "+data.obj_dimension+" Byte")
+            $('#file-info-text').removeAttr("hidden")
+          }
+
+          check_download_status_interval = setInterval(check_download_status, 2000);
+          find_contributors_interval = setInterval(find_contributors, 2000);
+        },
+        error: (xhr, data) => {
+          $('#download-error').removeAttr('hidden')
+          $('#download-error').text(xhr.responseText)
+          $('#download-button-text').text("Download!")
+          $('#download-button-spinner').attr("hidden", true)
+          $('#file-info-text').attr("hidden", true)
+        }
+      })
+      
+      
+    })
+
+    $('#back-home-button').click(() => {
+      window.location.href="/"
+    })
+
+
+  </script>
+
+</body>
+
+</html>
