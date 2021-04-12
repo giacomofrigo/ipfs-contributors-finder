@@ -24,3 +24,10 @@ Finally run the application using:
 docke run --name ipfs-contributors-finder -p 4444:4444 ipfs-contributors-finder
 ```
 The application will be then available at *http://127.0.0.1:4444*
+
+## Implementation
+This application is a web application. It is implemented using Python Flask microframework
+as backend and a simple Bootstrap based single HTML page as frontend.
+Under the hood the Go implementation of IPFS is used. IPFS provides a nice Command Line Interface
+The user interface uses JavaScript in order to be responsive and interact with Flask backend.
+The user interface uses HighCharts (https://www.highcharts.com/) and DataTables (https://datatables.net/) libraries to create awesome interfaces. 

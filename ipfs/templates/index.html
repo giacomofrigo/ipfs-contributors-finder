@@ -13,6 +13,8 @@
     <!-- Bootstrap core CSS -->
     <link href="static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
+    <link rel="stylesheet" type="text/css" href="static/datatables/css/dataTables.bootstrap4.min.css"/>
+
     <style>
         .center-block {
             display: table; /* Instead of display:block */
@@ -107,6 +109,21 @@
                 <div id="upload-speed-chart"></div>
             </figure>
         </div>
+        <div class="col-md-12" id="final-table-div" hidden="true">
+            <table id="final-table" class="table table-striped" style="width:100%">
+                <thead>
+                <tr>
+                    <th>Peer ID</th>
+                    <th>Blocks Downloaded</th>
+                    <th>IP Address</th>
+                    <th>Country</th>
+                    <th>City</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
 
 
@@ -119,6 +136,9 @@
 <script src="static/highcharts/highcharts.js"></script>
 <script src="static/highcharts/highcharts-more.js"></script>
 <script src="static/highcharts/modules/solid-gauge.js"></script>
+
+<script type="text/javascript" src="static/datatables/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="static/datatables/js/dataTables.bootstrap4.min.js"></script>
 
 <script>
 
@@ -215,14 +235,14 @@
                 tickAmount: 2,
                 title: {
                     text: '<p class="lead-text">Download speed</p>',
-                    y:-120,
+                    y: -120,
                     useHTML: true
                 },
                 labels: {
                     y: 16
                 }
             },
-            credits : {
+            credits: {
                 enabled: false
             },
 
@@ -237,7 +257,7 @@
             },
             series: [{
                 name: 'Speed',
-                data: [ {y: 0, name: 'B/s', converted:0}],
+                data: [{y: 0, name: 'B/s', converted: 0}],
                 dataLabels: {
                     format:
                         '<div style="text-align:center">' +
@@ -294,14 +314,14 @@
                 tickAmount: 2,
                 title: {
                     text: '<p class="lead-text">Upload speed</p>',
-                    y:-120,
+                    y: -120,
                     useHTML: true
                 },
                 labels: {
                     y: 16
                 }
             },
-            credits : {
+            credits: {
                 enabled: false
             },
 
@@ -316,7 +336,7 @@
             },
             series: [{
                 name: 'Speed',
-                data: [ {y: 0, name: 'B/s', converted: 0}],
+                data: [{y: 0, name: 'B/s', converted: 0}],
                 dataLabels: {
                     format:
                         '<div style="text-align:center">' +
@@ -337,7 +357,7 @@
 
     let check_download_status_interval = null;
     let find_contributors_interval = null;
-
+    let final_table = null;
 
     function bytes_converter(size) {
         // 2**10 = 1024
@@ -349,6 +369,23 @@
             n = n + 1
         }
         return {"value": size, "unit": power_labels[n] + 'B/s'}
+    }
+
+    function create_final_table(json) {
+
+        final_table = $('#final-table').DataTable({
+            "data": json,
+            "columns": [
+                {"data": "peer_id"},
+                {"data": "received_blocks"},
+                {"data": "ip_address"},
+                {"data": "country_name"},
+                {"data": "city"},
+            ],
+            "order": [[ 1, "desc" ]]
+        })
+
+        $('final-table-div').removeAttr("hidden")
     }
 
     function check_download_status() {
@@ -371,11 +408,21 @@
 
                     clearInterval(check_download_status_interval)
                     clearInterval(find_contributors_interval)
-                }else{
+
+                    create_final_table(last_contributors_update)
+                } else {
                     let conversion = bytes_converter(data.download_speed)
-                    donwload_speed_chart.series[0].data[0].update({y: data.download_speed, name: conversion['unit'], converted: conversion['value'].toFixed(2)})
+                    donwload_speed_chart.series[0].data[0].update({
+                        y: data.download_speed,
+                        name: conversion['unit'],
+                        converted: conversion['value'].toFixed(2)
+                    })
                     conversion = bytes_converter(data.upload_speed)
-                    upload_speed_chart.series[0].data[0].update({y: data.upload_speed, name: conversion['unit'], converted: conversion['value'].toFixed(2)})
+                    upload_speed_chart.series[0].data[0].update({
+                        y: data.upload_speed,
+                        name: conversion['unit'],
+                        converted: conversion['value'].toFixed(2)
+                    })
                 }
             },
             error: (xhr, data) => {
