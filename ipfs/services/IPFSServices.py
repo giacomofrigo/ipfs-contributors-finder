@@ -102,7 +102,7 @@ class IPFSServices:
         subprocess.Popen(["killall", "-9", "ipfs"])
         current_app.logger.info("IPFS daemon terminated. Now restartng it.")
         #restaring daemon
-        current_app.config["IPFS_DAEMON"] = subprocess.Popen(['/usr/local/bin/ipfs', 'daemon'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        current_app.config["IPFS_DAEMON"] = subprocess.Popen(['ipfs', 'daemon'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         time.sleep(3)
         #clean the cache
         p = subprocess.run(['ipfs', 'repo', 'gc'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)

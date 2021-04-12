@@ -68,7 +68,7 @@ def start_download(cid):
 
     #start the download thread that will execute the get_content method
     
-    download_process = subprocess.Popen(['/usr/local/bin/ipfs', 'get', cid], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    download_process = subprocess.Popen(['ipfs', 'get', cid], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     return jsonify({"message":"Download started", "obj_type":obj_type, "obj_dimension":obj_dimension}), 200
 
 @views.route("/api/download/status", methods=['GET'])
