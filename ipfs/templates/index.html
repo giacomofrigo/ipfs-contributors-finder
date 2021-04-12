@@ -47,7 +47,7 @@
                 <div class="input-group mb-2 mr-sm-2">
                     <input type="text" class="form-control" placeholder="CID" id="cid">
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button" id="random-button">Random CID</button>
+                        <button class="btn btn-outline-secondary" type="button" id="random-button">Example CID</button>
                     </div>
                 </div>
 
@@ -116,9 +116,9 @@
 <script src="static/jquery/jquery.min.js"></script>
 <script src="static/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-<script src="https://code.highcharts.com/highcharts.js"></script>
-<script src="https://code.highcharts.com/highcharts-more.js"></script>
-<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+<script src="static/highcharts/highcharts.js"></script>
+<script src="static/highcharts/highcharts-more.js"></script>
+<script src="static/highcharts/modules/solid-gauge.js"></script>
 
 <script>
 
@@ -333,8 +333,10 @@
 
     })
 
-    var check_download_status_interval = null;
-    var find_contributors_interval = null;
+    let last_contributors_update = null;
+
+    let check_download_status_interval = null;
+    let find_contributors_interval = null;
 
 
     function bytes_converter(size) {
@@ -389,11 +391,13 @@
             url: "/api/stats/contributors",
             method: 'GET',
             success: (data) => {
-                var peer_ids = []
-                var received_blocks = []
-                var country_code = []
-                var country_code_n = []
-                var country_code_idx = null;
+                last_contributors_update = data
+
+                let peer_ids = []
+                let received_blocks = []
+                let country_code = []
+                let country_code_n = []
+                let country_code_idx = null;
 
                 $.each(data, (idx, item) => {
                     peer_ids.push("..." + item.peer_id.slice(-7))

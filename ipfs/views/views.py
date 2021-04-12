@@ -175,7 +175,7 @@ def stop_download(cid):
 
 
 @views.route("/api/stats/download", methods=['GET'])
-def donwload_speed():
+def download_speed():
     '''
     This API return the download speed to the client
     This result into a json with the following structure
