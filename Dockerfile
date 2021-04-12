@@ -25,7 +25,6 @@ WORKDIR /app
 RUN pip3 install -r requirements.txt
 
 EXPOSE 4444/tcp
-EXPOSE 5001/tcp
 
 #start app
 ENTRYPOINT ["python3"]
