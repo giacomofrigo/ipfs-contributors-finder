@@ -79,7 +79,12 @@ def download_status():
     global downloading_cid, download_process, current_contributors_addresses
 
     if download_process is not None and download_process.poll() is None:
-        return "Process alive", 200
+        #get current donwload speed
+        speed_api = IPFSServices.get_download_speed()
+        download_speed = speed_api['RateIn']
+        upload_speed = speed_api['RateOut']
+
+        return jsonify({"status": "alive", "download_speed": round(download_speed,2), "upload_speed": round(upload_speed,2) }), 200
     else:
         if downloading_cid != None:
             #cleaning downloaded file and ipfs repo gc
@@ -88,7 +93,7 @@ def download_status():
         downloading_cid = None
         current_app.logger.info("cleaning ip addresses cache")
         current_contributors_addresses = {}
-        return "Process dead", 200
+        return jsonify({"status": "stopped"}), 200
         
 @views.route("/api/stats/contributors", methods=['GET'])
 def get_contributors():
@@ -157,3 +162,16 @@ def stop_download(cid):
     else:
         return "No download process found.", 500
 
+
+@views.route("/api/stats/donwload", methods=['GET'])
+def donwload_speed():
+    '''
+    This API return the download speed to the client
+    '''
+    result = IPFSServices.get_download_speed()
+
+    if result is not None:
+        return result
+    else:
+        current_app.logger.error("Unable to get download speed from IPFS API")
+        return "Unable to get download speed", 500

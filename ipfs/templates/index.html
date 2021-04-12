@@ -78,7 +78,7 @@
             <button type="button" class="btn btn-danger" id="cancel-download-button" hidden="true">
                 Cancel Download
                 <span class="spinner-border spinner-border-sm" role="status" id="cancel-download-button-spinner"
-                          hidden="true"></span>
+                      hidden="true"></span>
             </button>
         </div>
     </div>
@@ -97,8 +97,15 @@
             </figure>
         </div>
 
-        <div class="col-lg-12">
-
+        <div class="col-md-6">
+            <figure class="highcharts-figure">
+                <div id="download-speed-chart"></div>
+            </figure>
+        </div>
+        <div class="col-md-6">
+            <figure class="highcharts-figure">
+                <div id="upload-speed-chart"></div>
+            </figure>
         </div>
     </div>
 
@@ -110,11 +117,14 @@
 <script src="static/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 <script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
 
 <script>
 
     var received_blocks_chart;
     var country_code_chart;
+    var donwload_speed_chart;
 
     $(document).ready(() => {
         $('#cid').val("")
@@ -163,15 +173,181 @@
             series: [{
                 name: '# peers',
                 colorByPoint: true,
-                data: [ ]
+                data: []
             }]
         });
+
+        donwload_speed_chart = Highcharts.chart('download-speed-chart', {
+            chart: {
+                type: 'solidgauge'
+            },
+            title: null,
+
+            pane: {
+                center: ['50%', '60%'],
+                size: '100%',
+                startAngle: -120,
+                endAngle: 120,
+                background: {
+                    backgroundColor:
+                        Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+                    innerRadius: '60%',
+                    outerRadius: '100%',
+                    shape: 'arc'
+                }
+            },
+            exporting: {
+                enabled: false
+            },
+            tooltip: {
+                enabled: false
+            },
+            // the value axis
+            yAxis: {
+                min: 0,
+                max: 1024 * 1024,
+                stops: [
+                    [1, '#60e7a9']
+                ],
+                lineWidth: 0,
+                tickWidth: 0,
+                minorTickInterval: null,
+                tickAmount: 2,
+                title: {
+                    text: '<p class="lead-text">Download speed</p>',
+                    y:-120,
+                    useHTML: true
+                },
+                labels: {
+                    y: 16
+                }
+            },
+            credits : {
+                enabled: false
+            },
+
+            plotOptions: {
+                solidgauge: {
+                    dataLabels: {
+                        y: 5,
+                        borderWidth: 0,
+                        useHTML: true
+                    }
+                }
+            },
+            series: [{
+                name: 'Speed',
+                data: [ {y: 0, name: 'B/s', converted:0}],
+                dataLabels: {
+                    format:
+                        '<div style="text-align:center">' +
+                        '<span style="font-size:25px">{point.converted}</span><br/>' +
+                        '<span style="font-size:12px;opacity:0.4">{point.name}</span>' +
+                        '</div>'
+                },
+                tooltip: {
+                    valueSuffix: ' {point.name}'
+                }
+            }]
+        })
+
+
+        upload_speed_chart = Highcharts.chart('upload-speed-chart', {
+            chart: {
+                type: 'solidgauge'
+            },
+
+            title: null,
+
+            pane: {
+                center: ['50%', '60%'],
+                size: '100%',
+                startAngle: -120,
+                endAngle: 120,
+                background: {
+                    backgroundColor:
+                        Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+                    innerRadius: '60%',
+                    outerRadius: '100%',
+                    shape: 'arc'
+                }
+            },
+
+            exporting: {
+                enabled: false
+            },
+
+            tooltip: {
+                enabled: false
+            },
+
+            // the value axis
+            yAxis: {
+                min: 0,
+                max: 100,
+                stops: [
+                    [1, '#a38be3']
+                ],
+                lineWidth: 0,
+                tickWidth: 0,
+                minorTickInterval: null,
+                tickAmount: 2,
+                title: {
+                    text: '<p class="lead-text">Upload speed</p>',
+                    y:-120,
+                    useHTML: true
+                },
+                labels: {
+                    y: 16
+                }
+            },
+            credits : {
+                enabled: false
+            },
+
+            plotOptions: {
+                solidgauge: {
+                    dataLabels: {
+                        y: 5,
+                        borderWidth: 0,
+                        useHTML: true
+                    }
+                }
+            },
+            series: [{
+                name: 'Speed',
+                data: [ {y: 0, name: 'B/s'}],
+                dataLabels: {
+                    format:
+                        '<div style="text-align:center">' +
+                        '<span style="font-size:25px">{y}</span><br/>' +
+                        '<span style="font-size:12px;opacity:0.4">{point.name}</span>' +
+                        '</div>'
+                },
+                tooltip: {
+                    valueSuffix: ' {point.name}'
+                }
+            }]
+        })
 
 
     })
 
     var check_download_status_interval = null;
     var find_contributors_interval = null;
+
+
+    function bytes_converter(size) {
+        // 2**10 = 1024
+        let power = 2 ** 10
+        let n = 0
+        let power_labels = {0: '', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
+        while (size > power) {
+            size = size / power
+            n = n + 1
+        }
+        return {"value": size, "unit": power_labels[n] + 'B/s'}
+    }
 
     function check_download_status() {
 
@@ -181,7 +357,7 @@
             success: (data) => {
                 $('#progress-bar-text').text("Downloading..")
                 $('#progress-bar-text').removeClass("text-danger")
-                if (data !== 'Process alive') {
+                if (data.status !== 'alive') {
                     $('#form-row').attr("hidden", true)
                     $('#loading-row').attr("hidden", true)
                     $('#progress-div').attr("hidden", true)
@@ -193,6 +369,11 @@
 
                     clearInterval(check_download_status_interval)
                     clearInterval(find_contributors_interval)
+                }else{
+                    let conversion = bytes_converter(data.download_speed)
+                    donwload_speed_chart.series[0].data[0].update({y: data.download_speed, name: conversion['unit'], converted: conversion['value']})
+                    conversion = bytes_converter(data.upload_speed)
+                    upload_speed_chart.series[0].data[0].update({y: conversion['value'], name: conversion['unit']})
                 }
             },
             error: (xhr, data) => {
@@ -217,8 +398,6 @@
                 $.each(data, (idx, item) => {
                     peer_ids.push("..." + item.peer_id.slice(-7))
                     received_blocks.push(item.received_blocks)
-                    console.log(item)
-                    console.log('country_code' in item)
 
                     if ('country_code' in item) {
                         country_code_idx = $.inArray(item.country_code, country_code)
@@ -318,7 +497,7 @@
     $('#cancel-download-button').click(() => {
         $('#cancel-download-button-spinner').removeAttr("hidden")
         $.ajax({
-            url:"/api/stop/"+$('#cid').val(),
+            url: "/api/stop/" + $('#cid').val(),
             method: "GET",
             error: (xhr, data) => {
                 $('#progress-bar-text').text("Something goes wrong stopping the download! " + xhr.responseText)

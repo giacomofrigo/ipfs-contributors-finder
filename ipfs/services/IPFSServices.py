@@ -122,3 +122,23 @@ class IPFSServices:
         p = subprocess.run(['ipfs', 'repo', 'gc'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             current_app.logger.error("ipfs repo gc command has not be completed successfully")
+
+    @staticmethod
+    def get_download_speed():
+        '''
+        This API return the actual downlaod rate. It exploits /api/v0/stats/bw IPFS api.
+        '''
+        try:
+            response = requests.post('http://localhost:5001/api/v0/stats/bw')
+            if response.status_code < 400:
+                return ast.literal_eval(response.text.replace('null', 'None'))
+            else:
+                current_app.logger.error ("Error executing the request")
+                current_app.logger.error ("Status code {}\nText {}".format(response.status_code, response.text))
+                return None
+        except Exception as e:
+            current_app.logger.error("Unable to exec the request")
+            current_app.logger.error(e)
+            return None
+
+
