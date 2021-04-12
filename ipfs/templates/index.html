@@ -75,7 +75,11 @@
             </div>
         </div>
         <div class="col-md-2 text-center">
-            <button type="button" class="btn btn-danger" id="cancel-download-button" hidden="true">Cancel Download</button>
+            <button type="button" class="btn btn-danger" id="cancel-download-button" hidden="true">
+                Cancel Download
+                <span class="spinner-border spinner-border-sm" role="status" id="cancel-download-button-spinner"
+                          hidden="true"></span>
+            </button>
         </div>
     </div>
 
@@ -312,6 +316,7 @@
     })
 
     $('#cancel-download-button').click(() => {
+        $('#cancel-download-button-spinner').removeAttr("hidden")
         $.ajax({
             url:"/api/stop/"+$('#cid').val(),
             method: "GET",
