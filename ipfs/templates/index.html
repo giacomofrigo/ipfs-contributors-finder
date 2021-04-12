@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="positio">
 
 <head>
 
@@ -25,15 +25,25 @@
         .text-danger {
             color: red;
         }
+
+        html {
+            position: relative;
+            min-height: 100%;
+        }
+
+        body {
+            margin-bottom: 60px; /* Margin bottom by footer height */
+        }
+
         .footer {
             position: absolute;
             bottom: 0;
-            background-color: #424242;
-            color: #DDDDDD;
             width: 100%;
-            height: 60px;
-            line-height: 60px;
+            height: 60px; /* Set the fixed height of the footer here */
+            line-height: 60px; /* Vertically center the text there */
+            background-color: #fa7979;
         }
+
     </style>
 
 </head>
@@ -44,10 +54,10 @@
 <div class="container">
     <div class="row">
         <div class="col-lg-12 text-center">
-            <h1 class="mt-5">IPFS Contributors Finder</h1>
+            <h1 class="mt-5" style="color:#fa7979" >IPFS Contributors Finder</h1>
             <p class="lead" id="lead-text">Insert your Content ID and start downloading it!</p>
-            <button id="back-home-button" type="button" class="btn btn-info" hidden="true">Go back home</button>
-            <p class="lead" id="file-info-text" hidden="true"></p>
+            <button id="back-home-button" type="button" class="btn btn-info" style="display: none">Go back home</button>
+            <p class="lead" id="file-info-text" style="display: none"></p>
         </div>
     </div>
     <div class="row justify-content-center" id="form-row">
@@ -65,20 +75,20 @@
                 <button type="submit" class="btn btn-primary mb-2" id="download-button">
                     <span id="download-button-text">Download!</span>
                     <span class="spinner-border spinner-border-sm" role="status" id="download-button-spinner"
-                          hidden="true"></span>
+                          style="display: none"></span>
                 </button>
 
             </form>
-            <span class="error text-danger" hidden="true"
+            <span class="error text-danger" style="display: none"
                   id="download-error">An error occured! please try again later! </span>
 
         </div>
     </div>
 
     <!-- progress bar -->
-    <div class="row d-flex" id="loading-row" hidden="true">
+    <div class="row d-flex" id="loading-row" style="display: none">
         <div class="col-lg-10 text-center">
-            <div class="progress" id="progress-div" style="height:100%" hidden="true">
+            <div class="progress" id="progress-div" style="height:100%; display:none">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                      aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
                     <large class="justify-content-center d-flex w-100" id="progress-bar-text">Downloading..</large>
@@ -86,16 +96,16 @@
             </div>
         </div>
         <div class="col-md-2 text-center">
-            <button type="button" class="btn btn-danger" id="cancel-download-button" hidden="true">
+            <button type="button" class="btn btn-danger" id="cancel-download-button" style="display: none">
                 Cancel Download
                 <span class="spinner-border spinner-border-sm" role="status" id="cancel-download-button-spinner"
-                      hidden="true"></span>
+                      style="display: none"></span>
             </button>
         </div>
     </div>
 
 
-    <div class="row" id="result-row" style="margin-top:15px;" hidden="true">
+    <div class="row" id="result-row" style="margin-top:15px; display:none">
         <div class="col-md-6">
             <figure class="highcharts-figure">
                 <div id="received_blocks_chart"></div>
@@ -118,7 +128,7 @@
                 <div id="upload-speed-chart"></div>
             </figure>
         </div>
-        <div class="col-md-12" id="final-table-div" hidden="true">
+        <div class="col-md-12" id="final-table-div" style="margin-bottom:20px; display: none">
             <table id="final-table" class="table table-striped" style="width:100%">
                 <thead>
                 <tr>
@@ -397,10 +407,10 @@
                 {"data": "country_name"},
                 {"data": "city"},
             ],
-            "order": [[ 1, "desc" ]]
+            "order": [[1, "desc"]]
         })
 
-        $('final-table-div').removeAttr("hidden")
+        $('#final-table-div').show()
     }
 
     function check_download_status() {
@@ -412,14 +422,14 @@
                 $('#progress-bar-text').text("Downloading..")
                 $('#progress-bar-text').removeClass("text-danger")
                 if (data.status !== 'alive') {
-                    $('#form-row').attr("hidden", true)
-                    $('#loading-row').attr("hidden", true)
-                    $('#progress-div').attr("hidden", true)
-                    $('#result-row').removeAttr("hidden")
-                    $('#back-home-button').removeAttr("hidden")
+                    $('#form-row').hide()
+                    $('#loading-row').hide()
+                    $('#progress-div').hide()
+                    $('#result-row').show()
+                    $('#back-home-button').show()
                     $('#lead-text').text("Download completed. Here some result.")
-                    $('#download-error').attr('hidden', true)
-                    $('#cancel-download-button').attr('hidden', true)
+                    $('#download-error').hide()
+                    $('#cancel-download-button').hide()
 
                     clearInterval(check_download_status_interval)
                     clearInterval(find_contributors_interval)
@@ -506,7 +516,7 @@
 
             },
             error: () => {
-                $('#contributors-error').removeAttr("hidden")
+                $('#contributors-error').show()
             }
         })
 
@@ -522,34 +532,34 @@
 
     $('#download-button').click(() => {
         $('#download-button-text').text("Loading..")
-        $('#download-button-spinner').removeAttr("hidden")
+        $('#download-button-spinner').show()
 
         $.ajax({
             url: "/api/download/" + $('#cid').val(),
             method: 'GET',
             success: (data) => {
-                $('#form-row').attr("hidden", true)
+                $('#form-row').hide()
                 $('#lead-text').text("Downloading " + $('#cid').val())
-                $('#loading-row').removeAttr("hidden")
-                $('#progress-div').removeAttr("hidden")
-                $('#result-row').removeAttr("hidden")
-                $('#download-error').attr('hidden', true)
-                $('#cancel-download-button').removeAttr("hidden")
+                $('#loading-row').show()
+                $('#progress-div').show()
+                $('#result-row').fadeIn()
+                $('#download-error').hide()
+                $('#cancel-download-button').show()
 
                 if (data.obj_type != 'None' && data.obj_dimension != 'None') {
                     $('#file-info-text').text("Type: " + data.obj_type + ", Dimension: " + data.obj_dimension + " Byte")
-                    $('#file-info-text').removeAttr("hidden")
+                    $('#file-info-text').show()
                 }
 
                 check_download_status_interval = setInterval(check_download_status, 5000);
                 find_contributors_interval = setInterval(find_contributors, 5000);
             },
             error: (xhr, data) => {
-                $('#download-error').removeAttr('hidden')
+                $('#download-error').show()
                 $('#download-error').text(xhr.responseText)
                 $('#download-button-text').text("Download!")
-                $('#download-button-spinner').attr("hidden", true)
-                $('#file-info-text').attr("hidden", true)
+                $('#download-button-spinner').hide()
+                $('#file-info-text').hide()
             }
         })
 
@@ -561,7 +571,7 @@
     })
 
     $('#cancel-download-button').click(() => {
-        $('#cancel-download-button-spinner').removeAttr("hidden")
+        $('#cancel-download-button-spinner').show()
         $.ajax({
             url: "/api/stop/" + $('#cid').val(),
             method: "GET",
