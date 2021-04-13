@@ -169,7 +169,8 @@
 
     var received_blocks_chart;
     var country_code_chart;
-    var donwload_speed_chart;
+    var download_speed_chart;
+    var upload_speed_chart;
 
     $(document).ready(() => {
         $('#cid').val("")
@@ -222,7 +223,7 @@
             }]
         });
 
-        donwload_speed_chart = Highcharts.chart('download-speed-chart', {
+        download_speed_chart = Highcharts.chart('download-speed-chart', {
             chart: {
                 type: 'solidgauge'
             },
@@ -329,7 +330,7 @@
             // the value axis
             yAxis: {
                 min: 0,
-                max: 10 * 1024 * 1024,
+                max: 3 * 1024 * 1024,
                 stops: [
                     [1, '#a38be3']
                 ],
@@ -384,6 +385,9 @@
     let find_contributors_interval = null;
     let final_table = null;
 
+    let download_speeds = [];
+    let upload_speeds = [];
+
     function bytes_converter(size) {
         // 2**10 = 1024
         let power = 2 ** 10
@@ -435,9 +439,40 @@
                     clearInterval(find_contributors_interval)
 
                     create_final_table(all_contributors)
+
+                    //update speed graph wit the avg speed
+                    const download_sum = download_speeds.reduce((a, b) => a + b, 0);
+                    const download_avg = (download_sum / download_speeds.length) || 0;
+
+                    const upload_sum = upload_speeds.reduce((a, b) => a + b, 0);
+                    const upload_avg = (upload_sum / upload_speeds.length) || 0;
+
+
+                    let conversion = bytes_converter(download_avg)
+                    download_speed_chart.series[0].data[0].update({
+                        y: download_avg,
+                        name: conversion['unit'],
+                        converted: conversion['value'].toFixed(2)
+                    })
+                    conversion = bytes_converter(upload_avg)
+                    upload_speed_chart.series[0].data[0].update({
+                        y: upload_avg,
+                        name: conversion['unit'],
+                        converted: conversion['value'].toFixed(2)
+                    })
+
+                    download_speed_chart.series[0].yAxis.setTitle({text: '<p class="lead-text">Avarage download speed</p>', y: -120, useHTML: true}) ;
+                    upload_speed_chart.series[0].yAxis.setTitle({text: '<p class="lead-text">Avarage upload speed</p>', y: -120, useHTML: true});
+
+                    //***********
+
                 } else {
+                    //update array for avg final computation
+                    download_speeds.push(data.download_speed)
+                    upload_speeds.push(data.upload_speed)
+
                     let conversion = bytes_converter(data.download_speed)
-                    donwload_speed_chart.series[0].data[0].update({
+                    download_speed_chart.series[0].data[0].update({
                         y: data.download_speed,
                         name: conversion['unit'],
                         converted: conversion['value'].toFixed(2)
@@ -474,16 +509,20 @@
                     //update all_contributors
                     let updated = false
                     $.each(all_contributors, (contributor_idx, contributor) => {
-                        if (contributor.peer_id === item.peer_id){
+                        if (contributor.peer_id === item.peer_id) {
                             contributor.received_blocks = item.received_blocks
                             updated = true
                         }
                     })
 
-                    if (!(updated)){
+                    if (!(updated)) {
                         all_contributors.push(item)
                     }
+                })
+
+                $.each(all_contributors, (idx, item) => {
                     console.log(all_contributors)
+
 
                     //update graph data structures
                     peer_ids.push("..." + item.peer_id.slice(-7))
@@ -498,6 +537,9 @@
                             country_code_n[country_code_idx]++;
                         }
                     }
+
+                    console.log(country_code)
+                    console.log(country_code_n)
                 })
 
                 //update graphs
