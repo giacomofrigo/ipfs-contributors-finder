@@ -27,7 +27,11 @@ The application will be then available at *http://127.0.0.1:4444*
 
 ## Implementation
 This application is a web application. It is implemented using Python Flask microframework
-as backend and a simple Bootstrap based single HTML page as frontend.
-Under the hood the Go implementation of IPFS is used. IPFS provides a nice Command Line Interface
+and a simple Bootstrap based HTML page as user interface.
+
+Under the hood the Go implementation of IPFS is used. IPFS provides an easy-to-use Command Line Interface and a HTTP REST API interface.
+This application exploits both of these interfaces to interact with the IPFS node. 
+
+
 The user interface uses JavaScript in order to be responsive and interact with Flask backend.
 The user interface uses HighCharts (https://www.highcharts.com/) and DataTables (https://datatables.net/) libraries to create awesome interfaces. 
