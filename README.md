@@ -21,7 +21,7 @@ docker build -t ipfs-contributors-finder .
 ```
 Finally run the application using:
 ```
-docke run --name ipfs-contributors-finder -p 4444:4444 ipfs-contributors-finder
+docker run --name ipfs-contributors-finder -p 4444:4444 ipfs-contributors-finder
 ```
 The application will be then available at *http://127.0.0.1:4444*
 

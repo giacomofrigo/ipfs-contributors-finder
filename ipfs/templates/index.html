@@ -378,7 +378,7 @@
 
     })
 
-    let last_contributors_update = null;
+    let all_contributors = [];
 
     let check_download_status_interval = null;
     let find_contributors_interval = null;
@@ -434,7 +434,7 @@
                     clearInterval(check_download_status_interval)
                     clearInterval(find_contributors_interval)
 
-                    create_final_table(last_contributors_update)
+                    create_final_table(all_contributors)
                 } else {
                     let conversion = bytes_converter(data.download_speed)
                     donwload_speed_chart.series[0].data[0].update({
@@ -463,8 +463,6 @@
             url: "/api/stats/contributors",
             method: 'GET',
             success: (data) => {
-                last_contributors_update = data
-
                 let peer_ids = []
                 let received_blocks = []
                 let country_code = []
@@ -472,6 +470,22 @@
                 let country_code_idx = null;
 
                 $.each(data, (idx, item) => {
+
+                    //update all_contributors
+                    let updated = false
+                    $.each(all_contributors, (contributor_idx, contributor) => {
+                        if (contributor.peer_id === item.peer_id){
+                            contributor.received_blocks = item.received_blocks
+                            updated = true
+                        }
+                    })
+
+                    if (!(updated)){
+                        all_contributors.push(item)
+                    }
+                    console.log(all_contributors)
+
+                    //update graph data structures
                     peer_ids.push("..." + item.peer_id.slice(-7))
                     received_blocks.push(item.received_blocks)
 
@@ -486,6 +500,7 @@
                     }
                 })
 
+                //update graphs
                 $.each(peer_ids, (idx, item) => {
                     let updated = false
                     for (let index in received_blocks_chart.series) {
