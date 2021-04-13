@@ -10,7 +10,7 @@ is completed the cache is cleared and the downloaded file is removed.
 
 ## Stats
 This application can be used to track which are the peers that contributes to download the file,
-in particular it reports their *peer identifier*, thier *ip address* and the *total amount of blocks downloaded from that peer*.
+in particular it reports their *peer identifier*, thier *ip address* and the *total amount of bytes downloaded from that peer*.
 A nice stat about the *countries* from which each peer share their content is also displayed.
 
 

@@ -52,9 +52,9 @@ class IPFSServices:
                 response = requests.post('http://localhost:5001/api/v0/bitswap/ledger?arg='+peer_id)
                 if response.status_code < 400:
                     peer_stat = ast.literal_eval(response.text)
-                    #if there are some blocks exchenged between the two peers append the peer to the contributors array
+                    #if there are some bytes exchenged between the two peers append the peer to the contributors array
                     if peer_stat["Exchanged"] > 0:
-                        contributors.append({"peer_id": peer_id, "ip_address": ip_address, "received_blocks": peer_stat['Recv']})
+                        contributors.append({"peer_id": peer_id, "ip_address": ip_address, "received_bytes": peer_stat['Recv']})
                 else:
                     current_app.logger.error ("Error executing the request")
                     current_app.logger.error ("Status code {}\nText {}".format(response.status_code, response.text))

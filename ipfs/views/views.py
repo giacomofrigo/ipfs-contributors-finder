@@ -118,7 +118,7 @@ def get_contributors():
     '''
     This API will return the current contributors
     It returns a json with the following format:
-    [{"peer_id": peer_id, "ip_address": ip_address, "received_blocks": # received blocks,
+    [{"peer_id": peer_id, "ip_address": ip_address, "received_bytes": # bytes received,
       "city": city, "region": region, "country_name": countr_name, "country_code": country_code}]
 
     There could be the possibility that the IP localization fails. In that case the above cited result dictionary
@@ -132,7 +132,7 @@ def get_contributors():
     # find contributors by querying the IPFS daemon
     contributors = IPFSServices.find_contributors()
     # contributors is in the following format
-    # [{"peer_id": peer_id, "ip_address": ip_address, "received_blocks": # received blocks}]
+    # [{"peer_id": peer_id, "ip_address": ip_address, "received_bytes": # received bytes}]
     if contributors is None:
         return "An error occured getting contributors", 500
 

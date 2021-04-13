@@ -108,7 +108,7 @@
     <div class="row" id="result-row" style="margin-top:15px; display:none">
         <div class="col-md-6">
             <figure class="highcharts-figure">
-                <div id="received_blocks_chart"></div>
+                <div id="received_bytes_chart"></div>
             </figure>
         </div>
 
@@ -133,7 +133,7 @@
                 <thead>
                 <tr>
                     <th>Peer ID</th>
-                    <th>Blocks Downloaded</th>
+                    <th>Bytes Received</th>
                     <th>IP Address</th>
                     <th>Country</th>
                     <th>City</th>
@@ -167,7 +167,7 @@
 
 <script>
 
-    var received_blocks_chart;
+    var received_bytes_chart;
     var country_code_chart;
     var download_speed_chart;
     var upload_speed_chart;
@@ -177,22 +177,25 @@
         //[ "sqQLuvuJ", "pkjrAEYn", "Zin6ut1W", "EaidtFVi", "FreJT9JN" ]
         //[ 313, 4468, 17201, 261, 1162969 ]
 
-        received_blocks_chart = Highcharts.chart('received_blocks_chart', {
+        received_bytes_chart = Highcharts.chart('received_bytes_chart', {
             chart: {
                 type: 'column'
             },
             title: {
-                text: 'Received blocks'
+                text: 'Bytes Received'
             },
             xAxis: {
                 type: "category",
                 labels: {enabled: false}
             },
             yAxis: {
-                min: 0
+                min: 0,
+                title: {
+                    text: 'Bytes'
+                }
             },
             tooltip: {
-                valueSuffix: ' blocks'
+                valueSuffix: ' bytes'
             },
             credits: {
                 enabled: false
@@ -406,7 +409,7 @@
             "data": json,
             "columns": [
                 {"data": "peer_id"},
-                {"data": "received_blocks"},
+                {"data": "received_bytes"},
                 {"data": "ip_address"},
                 {"data": "country_name"},
                 {"data": "city"},
@@ -499,7 +502,7 @@
             method: 'GET',
             success: (data) => {
                 let peer_ids = []
-                let received_blocks = []
+                let received_bytes = []
                 let country_code = []
                 let country_code_n = []
                 let country_code_idx = null;
@@ -510,7 +513,7 @@
                     let updated = false
                     $.each(all_contributors, (contributor_idx, contributor) => {
                         if (contributor.peer_id === item.peer_id) {
-                            contributor.received_blocks = item.received_blocks
+                            contributor.received_bytes = item.received_bytes
                             updated = true
                         }
                     })
@@ -526,7 +529,7 @@
 
                     //update graph data structures
                     peer_ids.push("..." + item.peer_id.slice(-7))
-                    received_blocks.push(item.received_blocks)
+                    received_bytes.push(item.received_bytes)
 
                     if ('country_code' in item) {
                         country_code_idx = $.inArray(item.country_code, country_code)
@@ -545,15 +548,15 @@
                 //update graphs
                 $.each(peer_ids, (idx, item) => {
                     let updated = false
-                    for (let index in received_blocks_chart.series) {
-                        if (received_blocks_chart.series[index].name === item) {
-                            received_blocks_chart.series[index].data[0].update({y: received_blocks[idx]})
+                    for (let index in received_bytes_chart.series) {
+                        if (received_bytes_chart.series[index].name === item) {
+                            received_bytes_chart.series[index].data[0].update({y: received_bytes[idx]})
                             updated = true
                             break;
                         }
                     }
                     if (!(updated)) {
-                        received_blocks_chart.addSeries({name: item, data: [received_blocks[idx]]})
+                        received_bytes_chart.addSeries({name: item, data: [received_bytes[idx]]})
                     }
                 })
 
@@ -604,7 +607,7 @@
                 $('#cancel-download-button').show()
 
                 if (data.obj_type != 'None' && data.obj_dimension != 'None') {
-                    $('#file-info-text').text("Type: " + data.obj_type + ", Dimension: " + data.obj_dimension + " Byte")
+                    $('#file-info-text').text("Type: " + data.obj_type + ", Dimension: " + data.obj_dimension + " Bytes")
                     $('#file-info-text').show()
                 }
 
