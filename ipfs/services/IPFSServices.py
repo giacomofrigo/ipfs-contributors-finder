@@ -1,4 +1,4 @@
-import requests, ast, os, subprocess, time
+import requests, ast, subprocess, time
 from flask import current_app
 
 
@@ -53,7 +53,7 @@ class IPFSServices:
                 if response.status_code < 400:
                     peer_stat = ast.literal_eval(response.text)
                     #if there are some bytes exchenged between the two peers append the peer to the contributors array
-                    if peer_stat["Exchanged"] > 0:
+                    if peer_stat["Recv"] > 0:
                         contributors.append({"peer_id": peer_id, "ip_address": ip_address, "received_bytes": peer_stat['Recv']})
                 else:
                     current_app.logger.error ("Error executing the request")

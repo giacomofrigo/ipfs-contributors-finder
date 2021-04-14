@@ -591,6 +591,18 @@
     })
 
     $('#download-button').click(() => {
+
+        if($('#cid').val() === ''){
+            $('#download-error').show()
+            $('#download-error').text("The CID is required")
+            $('#download-button-text').text("Download!")
+            $('#download-button-spinner').hide()
+            $('#file-info-text').hide()
+            return;
+        }else{
+            $('#download-error').hide()
+        }
+
         $('#download-button-text').text("Loading..")
         $('#download-button-spinner').show()
 
