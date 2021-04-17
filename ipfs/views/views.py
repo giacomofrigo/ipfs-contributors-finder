@@ -60,7 +60,7 @@ def start_download(cid):
     info = IPFSServices.get_content_info(cid)
     if info is None:
         current_app.logger.error("Get content info failed")
-        return "Unable to contact IPFS daemon at the moment, please try again in few seconds.", 404
+        return "Unable to get information about this CID at the moment, please try again in few seconds.", 404
 
     # extract type and dimension from API response
     if info['Objects'][cid]['Type'] == "File":
