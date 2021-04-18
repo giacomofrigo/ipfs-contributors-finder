@@ -5,7 +5,7 @@ from flask import Flask
 def create_app():
     app = Flask(__name__)
 
-    app.config["DEBUG"] = "True"
+    app.config["DEBUG"] = False
     app.config["SECRET_KEY"] = "pohu(jkC34&()sjhYN!mLoikdnJ??b7298YSos"
     app.config["IPFS_DAEMON"] = subprocess.Popen(['ipfs', 'daemon'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
