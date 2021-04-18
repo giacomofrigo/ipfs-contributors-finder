@@ -386,7 +386,16 @@
 
     let check_download_status_interval = null;
     let find_contributors_interval = null;
-    let final_table = null;
+    let final_table = $('#final-table').DataTable({
+            "columns": [
+                {"data": "peer_id"},
+                {"data": "received_bytes"},
+                {"data": "ip_address"},
+                {"data": "country_name"},
+                {"data": "city"},
+            ],
+            "order": [[1, "desc"]]
+        });
 
     let download_speeds = [];
     let upload_speeds = [];
@@ -404,18 +413,9 @@
     }
 
     function create_final_table(json) {
-
-        final_table = $('#final-table').DataTable({
-            "data": json,
-            "columns": [
-                {"data": "peer_id"},
-                {"data": "received_bytes"},
-                {"data": "ip_address"},
-                {"data": "country_name"},
-                {"data": "city"},
-            ],
-            "order": [[1, "desc"]]
-        })
+        console.log("populating final table")
+        final_table.clear();
+        final_table.rows.add( json ).draw();
 
         $('#final-table-div').show()
     }
@@ -426,9 +426,12 @@
             url: "/api/download/status",
             method: 'GET',
             success: (data) => {
+                console.log(data)
                 $('#progress-bar-text').text("Downloading..")
                 $('#progress-bar-text').removeClass("text-danger")
                 if (data.status !== 'alive') {
+                    console.log("download not alive")
+
                     $('#form-row').hide()
                     $('#loading-row').hide()
                     $('#progress-div').hide()
@@ -524,8 +527,6 @@
                 })
 
                 $.each(all_contributors, (idx, item) => {
-                    console.log(all_contributors)
-
 
                     //update graph data structures
                     peer_ids.push("..." + item.peer_id.slice(-7))
@@ -541,8 +542,6 @@
                         }
                     }
 
-                    console.log(country_code)
-                    console.log(country_code_n)
                 })
 
                 //update graphs

@@ -57,21 +57,16 @@ def start_download(cid):
     IPFSServices.restart_daemon()
 
     # check if the cid exists and get info about the object (type and size)
-    info = IPFSServices.get_content_info(cid)
+    info = IPFSServices.get_content_info_bash(cid)
     if info is None:
         current_app.logger.error("Get content info failed")
         return "Unable to get information about this CID at the moment, please try again in few seconds.", 404
 
-    # extract type and dimension from API response
-    if info['Objects'][cid]['Type'] == "File":
-        obj_type = "File"
-        obj_dimension = info['Objects'][cid]['Size']
-    elif info['Objects'][cid]['Type'] == "Directory":
-        obj_type = "Directory"
-        obj_dimension = info['Objects'][cid]['Links'][0]['Size']
+    obj_type = info['Type']
+    if obj_type == "File":
+        obj_dimension = info['Size']
     else:
-        obj_type = None
-        obj_dimension = None
+        obj_dimension = info['CumulativeSize']
 
     current_app.logger.info(
         "Requested obj {}, TYPE: {}, DIMENSION: {}".format(downloading_cid, obj_type, obj_dimension))

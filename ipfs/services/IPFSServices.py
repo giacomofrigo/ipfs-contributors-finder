@@ -1,3 +1,5 @@
+import os.path
+
 import requests, ast, subprocess, time
 from flask import current_app
 
@@ -18,6 +20,27 @@ class IPFSServices:
                 current_app.logger.error ("Error executing the request")
                 current_app.logger.error ("Status code {}\nText {}".format(response.status_code, response.text))
                 return None
+        except Exception as e:
+            current_app.logger.error("Error executing the request")
+            current_app.logger.error(e)
+            return None
+
+    @staticmethod
+    def get_content_info_bash(cid):
+        '''
+        This function returns info about the content with cid passed as argument
+        '''
+        try:
+            response = subprocess.check_output(['ipfs', 'files', 'stat', '/ipfs/'+cid], stderr=subprocess.STDOUT, timeout=5)
+            parsed_response = response.decode().strip().split("\n")
+            dict_response = {'CID': parsed_response[0]}
+            parsed_response = parsed_response[1:]
+            for item in parsed_response:
+                k,v = item.replace(' ', '').split(':')
+                dict_response[k] = v
+
+            return (dict_response)
+
         except Exception as e:
             current_app.logger.error("Error executing the request")
             current_app.logger.error(e)
@@ -77,9 +100,16 @@ class IPFSServices:
         current_app.logger.info("IPFS daemon terminated. Now restarting it.")
         #restaring daemon
         current_app.config["IPFS_DAEMON"] = subprocess.Popen(['ipfs', 'daemon'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-        time.sleep(3)
+        time.sleep(4)
         #clean the IPFS cache
-        p = subprocess.run(['ipfs', 'repo', 'gc'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        #sometimes can happen that repo lock is not released
+        try:
+            if (os.path.isfile('/root/.ipfs/repo.lock')):
+                p = subprocess.run(['rm', '-rf', '/root/.ipfs/repo.lock'])
+        except:
+            pass
+
+        p = subprocess.run(['ipfs', 'repo', 'gc'])
         if p.returncode != 0:
             current_app.logger.error("ipfs repo gc command has not be completed successfully")
         current_app.logger.info("IPFS daemon restarted.")
@@ -92,7 +122,7 @@ class IPFSServices:
         '''
         current_app.logger.info("Removing directory and cleaning ipfs repo")
         
-        p = subprocess.run(['rm', '-r', cid], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        p = subprocess.run(['rm', '-rf', cid], stderr=subprocess.STDOUT)
         if p.returncode != 0:
             current_app.logger.error("unable to delete directory {}".format(cid))
 
